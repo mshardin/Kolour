@@ -1,0 +1,93 @@
+Options +FollowSymLinks -MultiViews
+SSLOptions +StrictRequire
+SSLRequireSSL
+SSLRequire %{HTTP_HOST}
+ErrorDocument 403 https://site.com
+# Turn mod_rewrite on
+RewriteEngine On
+RewriteBase /
+# RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+# RewriteCond %{HTTPS} != on
+RewriteRule ^(.*)$ $1.php
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# RewriteRule (.*) https://%(HTTP_HOST}%{REQUEST_URI} [R,L]
+# RewriteRule ^(.+)$ /$1.php [L,QSA]
+
+# RewriteCond %{REQUEST_URI} !^/users
+# RewriteRule ^index\.php(.*)$ /users/index.php$1 [L]
+# RewriteRule ^users/(.*)$ /$1 [L,NC,R]
+
+# Redirect .php URLs to rewritten URLs
+# RewriteRule ^(.+)$ /$1.php [L,QSA]
+# RewriteRule ^(.+)\.php$ $1 [L,QSA,R=301]
+
+# Rewrite URLs for processing by router (index.php)
+# RewriteCond %{REQUEST_FILENAME} !-f 
+# RewriteRule ^(.+)$ index.php?url=$1 [QSA,L,NC]
+
+# Deflate files to decrease load times
+# AddType image/svg+xml svg svgz
+# AddEncoding gzip svgz
+
+<IfModule mod_deflate.c>
+# Compress HTML, CSS, JavaScript, Text, XML and fonts
+SetOutputFilter DEFLATE	
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-www-form-urlencoded
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/vnd.ms-fontobject
+AddOutputFilterByType DEFLATE application/x-font
+AddOutputFilterByType DEFLATE application/x-font-opentype
+AddOutputFilterByType DEFLATE application/x-font-otf
+AddOutputFilterByType DEFLATE application/x-font-truetype
+AddOutputFilterByType DEFLATE application/x-font-ttf
+AddOutputFilterByType DEFLATE application/x-javascript
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE font/woff2
+AddOutputFilterByType DEFLATE font/opentype
+AddOutputFilterByType DEFLATE font/otf
+AddOutputFilterByType DEFLATE font/ttf
+AddOutputFilterByType DEFLATE image/svg+xml
+AddOutputFilterByType DEFLATE image/x-icon
+AddOutputFilterByType DEFLATE image/png
+AddOutputFilterByType DEFLATE image/jpeg
+AddOutputFilterByType DEFLATE image/gif
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/javascript
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/xml
+
+# properly handle old browsers that do not support compression
+BrowserMatch ^Mozilla/4 gzip-only-text/html
+BrowserMatch ^Mozilla/4\.0[678] no-gzip
+BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+Header append Vary User-Agent
+</IfModule>
+
+## EXPIRES CACHING ##
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresByType image/svg+xml "acces plus 25920000 seconds"
+ExpiresByType image/x-icon "access plus 25920000 seconds"
+ExpiresByType image/jpg "access plus 25920000 seconds"
+ExpiresByType image/jpeg "access plus 25920000 seconds"
+ExpiresByType image/gif "access plus 25920000 seconds"
+ExpiresByType image/png "access plus 25920000 seconds"
+ExpiresByType text/css "access plus 604800 seconds"
+ExpiresByType application/javascript "access plus 216000 seconds"
+ExpiresbyType application/x-javascript "access plus 216000 seconds"
+ExpiresByType application/pdf "access plus 25920000 seconds"
+ExpiresByType text/x-javascript "access plus 25920000 seconds"
+ExpiresByType application/x-shockwave-flash "access plus 25920000 seconds"
+ExpiresByType image/x-icon "access plus 25920000 seconds"
+ExpiresByType text/html "access plus 600 seconds"
+ExpiresDefault "access plus 5 seconds"
+</IfModule>
+## EXPIRES CACHING ##
+
+AddType image/svg+xml .svg .svgz
+

@@ -1,0 +1,6 @@
+<Files ~ "\.(htaccess|php)$">
+order allow,deny
+deny from all
+</Files>
+
+AddType image/svg+xml .svg .svgz
