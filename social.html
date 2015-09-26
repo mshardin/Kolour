@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Social Authentication</title>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script src="https://d20gj6m76a89ac.cloudfront.net/js/hello.min.js"></script>
+	<script src="https://s3-us-west-2.amazonaws.com/rekolour/js/twitter.js"></script>
+	<script src="js/pgwslideshow.min.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="css/pgwslideshow.min.css">
+
+	<!-- Script or loading twitter timeline feed -->
+	<script>
+		window.twttr=(function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);t._e=[];t.ready=function(f){t._e.push(f);};return t;}(document,"script","twitter-wjs"));
+	</script>
+	<script>
+		!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+	</script>
+
+	<script type="text/javascript">
+	$(document).ready(function() { 
+		// social links initialized
+		var tw = $( '#tw' );
+		var fb = $( '#fb' );
+		var li = $( '#li' );
+		var ig = $( '#ig' );
+
+		// Hide twitter button until twitter link is clicked
+		$('#twitter-button').hide();
+		$('#twitter-feed').show();
+
+		tw.click(function(e) {
+			e.preventDefault();
+
+			$('#content').html("");
+
+			$('#buttons').css("display", "none");
+			$('#twitter-feed').show();
+
+			// Bullet proof requests for twitter
+			twitter.login({scope:"basic,email,birthday,events,photos,videos,friends,files,publish_files,publish",display:"popup",force:false}).then(function() {
+				twitter.api('me').then(function(json) {
+					console.log(json);
+					$('#name').html("@" + json.name + "\'s Twitter");
+					$('#bio').html(json.description);
+					$('#bio').append("Followers: " + json.followers_count + " ");
+					$('#bio').append("Following: " + json.friends_count + " ");
+				});
+
+				twitter.api('me/share', 'get', null, null).then(function(json) {
+					console.log(json);
+					// $.each(json.data, function(key, val) {
+					// 	if (key === 0) {
+					// 		$('#content').html(val.text);
+					// 	} else {
+					// 		$('#content').append(val.text);
+					// 	}
+					// });
+				});
+			});
+		});
+
+		fb.click(function(e) {
+			e.preventDefault();
+
+			$('#content').html("");
+
+			$('#buttons').css("display", "inline-block");
+
+			$('#twitter-button').hide();
+			$('#twitter-feed').hide();
+
+			// Bullet proof requests for facebook
+			facebook.login({display:"popup",force:false,scope:"basic,email,birthday,events,photos,videos,friends,files,publish_files,publish"}).then(function(r) {
+				facebook.api('me').then(function(r) {
+					$('#name').html(r.name + "\'s Facebook");
+					$('#bio').html(r.bio);
+					$('#wall').click(function() {
+						facebook.api('me/share', 'get', null, null).then(function(json) {
+							console.log(json);
+							// clear current data
+							$('#content').html("");
+							$.each(json.data, function(key, val) {
+								var d = new Date(val.created_time);
+								if (val.type == 'link') {
+									$('#content').append( "<p id='left'><b>" + val.from.name + "</b></p>" + "<p id='right'>" + (d.getUTCMonth()+1) + "/" + d.getUTCDate() + "/" + d.getUTCFullYear() + "</p>" + "<br><br><p>" + val.from.name + " shared a <a href='" + val.link + "'>link</a>" + "</p><p><img src='" + val.picture + "'/></p><hr>" );
+								} else if (val.type == 'status') {
+									$('#content').append( "<p id='left'><b>" + val.from.name + "</b></p>" + "<p id='right'>" + (d.getUTCMonth()+1) + "/" + d.getUTCDate() + "/" + d.getUTCFullYear() + "</p>" + "<br><br><p>" + val.story + "</p><hr>" );
+								} else if (val.type == 'photo') {
+									$('#content').append( "<p id='left'><b>" + val.from.name + "</b></p>" + "<p id='right'>" + (d.getUTCMonth()+1) + "/" + d.getUTCDate() + "/" + d.getUTCFullYear() + "</p>" + "<br><br><p>" + val.story + "</p><p><a href='" + val.link + "'><img src='" + val.picture + "'/></a></p><hr>" );
+								}
+							});
+						}, function(e) {
+							alert("Whoops! " + e.error.message);
+						});
+					});
+
+					$('#info').click(function() {
+						// clear current data
+						$('#content').html("");
+						$('#content').html( "<img width=200 height=200 src='" +  "http://graph.facebook.com/" + r.id + "/picture?type=large" + "'/>");
+						$('#content').append("<p>Name: " + r.name + "</p>");
+						$('#content').append("<p>Email: " + r.email + "</p>");
+					});
+
+					$('#photos').click(function() {
+						facebook.api('me/photos', 'get', null, null).then(function(json) {
+							console.log(r);
+							// clear current data
+							$('#content').html("");
+							$.each(json.data, function(key, val) {
+								// if (val === 0) {
+								// 	$('#content').html("<img width=100 height=100 src='" + val.source + "'/>");
+								// } else { 
+								// 	$('#content').append("<img width=100 height=100 src='" + val.source + "'/>");
+								// }
+								if (key === 0) {
+									$('#content').append("<ul class='pgwSlideshow'></ul>");
+									$('.pgwSlideshow').append("<li><img src='" + val.source + "'/></li>");
+								} else { 
+									$('.pgwSlideshow').append("<li><img src='" + val.source + "'/></li>");
+								}
+							});
+							// Intitiate slideshow
+							$('.pgwSlideshow').pgwSlideshow();
+						});
+					});
+				});
+			});
+		});
+
+		li.click(function(e) {
+			e.preventDefault();
+			alert('linkedin is bullshit');
+		});
+
+		ig.click(function(e) {
+			e.preventDefault();
+
+			$('#content').html('');
+
+			$('#buttons').css("display", "none");
+
+			$('#twitter-button').hide();
+			$('#twitter-feed').hide();
+
+			// Bullet proof requests for instagram
+			instagram.login({display:"popup",force:false}).then(function() {
+				instagram.api('me').then(function(json) {
+					$('#name').html(json.data.username + "\'s Instagram");
+					$('#bio').html(json.data.bio + "<br><br>");
+					$('#bio').append("Followers: " + json.data.counts.followed_by + " ");
+					$('#bio').append("Following: " + json.data.counts.follows);
+				});
+
+				instagram.api('me/photos', 'get', null, null).then(function(json) {
+					// console.log(json);
+					// var data = [];
+					$.each(json.data, function(key, val) {
+						console.log(val);
+						// if (val === 0) {
+						// 	$('#content').html("<p style='display: block;'><img width=145 height=145 src='" + val.picture + "'/></p><p>" + val.likes.count + " likes " + val.comments.count + " comments</p>");
+						// } else { 
+						// 	$('#content').append("<p style='display: block;'><img width=145 height=145 src='" + val.picture + "'/></p>" + val.likes.count + " likes " + val.comments.count + " comments</p>");
+						// }
+						if (key === 0) {
+							$('#content').append("<ul class='pgwSlideshow'></ul>");
+							$('.pgwSlideshow').append("<li><img src='" + val.picture + "'/></li>");
+						} else { 
+							$('.pgwSlideshow').append("<li><img src='" + val.picture + "'/></li>");
+						}
+					});
+					// Intitiate slideshow
+					$('.pgwSlideshow').pgwSlideshow();
+				});
+			});
+		});
+
+		var facebook  = hello( 'facebook' );
+		var twitter   = hello( 'twitter' );
+		var instagram = hello( 'instagram' );
+	});
+		hello.init({
+			facebook : '325437204286871',
+			twitter : 'zqUgnpNxiCWJG0U4ij0SMjdgu',
+			instagram : '668d52893dd445a79b202f4fd66d0658',
+		}, {redirect_uri:'social.html', oauth_proxy:'https://auth-server.herokuapp.com/proxy'});
+	</script>
+
+	<style type="text/css">
+	#wrapper {
+		width: 100%;
+		height: auto;
+	}
+	.container {
+		width: 580px;
+		height: auto;
+		margin: 0 auto;
+		border: 1px solid black;
+		border-radius: 5px;
+	}
+	#head-banner {
+		color: #999;
+		padding: 10px 0;
+		background-color: #333333;
+	}
+		#head-banner a {
+			padding: 0 10px;
+			color: #999;
+			text-decoration: none;
+		}
+		#head-banner a:hover {
+			color: white;
+		}
+	#header {
+		border-top: 1px solid black;
+		border-bottom: 1px solid black;
+		height: 200px;
+		background-color: #EEEEEE;
+	}
+		#dynamic {
+			margin-left: 20px;
+		}
+		#name {
+			color: #2b82ad;
+		}
+		#name a {
+			color: #2b82ad;
+			text-decoration: none;
+		}
+		.button {
+			display: inline-block;
+			text-align: center;
+			border-radius: 3px;
+			font-size: 13px;
+			line-height: 28px;
+			padding: 0 15px;
+			background-color: #fff;
+			color: #444;
+			cursor: pointer;
+			box-shadow: 0 0 0 1px rgba(255,255,255,0.05),inset 0 0 0 1px rgba(255,255,255,0.3),inset 0 -60px 40px -40px rgba(0,0,0,0.05);
+			border: 1px solid #ddd;
+			border: 1px solid rgbha(0,0,0,0.2);
+			-webkit-box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			box-sizing: border-box;
+			white-space: nowrap;
+			margin: 0;
+		}
+		.button.active, .button:hover {
+			background-color: #d5e6ef;
+			z-index: 3;
+			border-color: #e5b6c0;
+			border-color: rgba(0,0,0,0.15);
+			box-shadow: none;
+			cursor: default;
+		}
+	#content {
+		width: auto;
+		height: auto;
+		background-color: #FFFFFF;
+	}
+	#twitter-feed {
+		text-align: center;
+	}
+	#left {
+		display: inline-block;
+		float: left;
+	}
+	#right {
+		display: inline-block;
+		float: right;
+		color: #999;
+	}
+	hr {
+		color: #999;
+	}
+	</style>
+</head>
+<body>
+	<div id="wrapper">
+		<div class="container">
+			<div id="head-banner">
+				<a id="tw" href="#">Twitter</a>
+
+				<a id="li" href="" >LinkedIn</a>
+
+				<a id="fb" href="">Facebook</a>
+
+				<a id="ig" href="">Instagram</a>
+			</div>
+
+			<div id="header">
+				<div id="dynamic">
+					<h2 id="name"><a href="#">Matthew</a></h2>
+
+					<h3 id="bio">Local Business</h3>
+
+					<div id="twitter-button">
+						<a class="twitter-follow-button" href="https://twitter.com/twitterdev" data-show-count="false" data-lang="en">
+						Follow @twitterapi
+						</a>
+					</div>
+
+					<div id="buttons">
+						<button id="wall" class="button">Wall</button>
+						<button id="info" class="button">Info</button>
+						<button id="photos" class="button">Photos</button>
+					</div>
+				</div>
+			</div>
+
+			<div id="content">
+				<ul class="pgwSlideshow">
+					<li><img src="http://static.pgwjs.com/img/pg/slideshow/san-francisco.jpg"></li>
+					<li><img src="http://static.pgwjs.com/img/pg/slideshow/san-francisco.jpg"></li>
+					<li><img src="http://static.pgwjs.com/img/pg/slideshow/san-francisco.jpg"></li>
+				</ul>
+				<div id="twitter-feed">
+					<a class="twitter-timeline" href="https://twitter.com/tch0tsky" data-widget-id="563472282287214594" data-chrome="noheader noscrollbar" height="560" width="560">Tweets by @tch0tsky</a>
+				</div>
+			</div>
+			<!-- <button id="ig-btn" onclick="hello( 'instagram' ).login()"></button> -->
+		</div>
+	</div>
+</body>
+</html>
